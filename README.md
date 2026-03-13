@@ -21,6 +21,8 @@
 Решить простую головоломку, с помощью ввода действий в строку
 
 # Use Case Диаграмма
-[shortlolquest (1).drawio](https://github.com/user-attachments/files/25739380/shortlolquest.1.drawio)
+<img width="583" height="846" alt="Use Case drawio" src="https://github.com/user-attachments/assets/811f4bb4-dcd0-48a5-8b8c-d2f2b5d130db" />
+
+
 
 
