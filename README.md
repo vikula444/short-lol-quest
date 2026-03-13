@@ -23,6 +23,9 @@
 # Use Case Диаграмма
 <img width="583" height="846" alt="Use Case drawio" src="https://github.com/user-attachments/assets/811f4bb4-dcd0-48a5-8b8c-d2f2b5d130db" />
 
+# Блок схема
+<img width="601" height="861" alt="блок схема drawio" src="https://github.com/user-attachments/assets/2f478ad2-5bb0-4cee-a1f8-29a8327f697d" />
+
 
 
 
