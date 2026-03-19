@@ -26,6 +26,8 @@
 # Блок схема
 <img width="601" height="861" alt="блок схема drawio" src="https://github.com/user-attachments/assets/2f478ad2-5bb0-4cee-a1f8-29a8327f697d" />
 
+#Код с несколькими рабочими окнами
+[игра калинина.py](https://github.com/user-attachments/files/26124907/default.py)
 
 
 
