@@ -1,8 +1,7 @@
 import tkinter as tk
-from tkinter import messagebox
-from typing import Self
+from datetime import datetime
+import os
 
-# Исходные данные игры
 cor = [
     {'place': 'комната', 'description': 'Вы находитесь в небольшой комнате. На столе лежит книга.', 'actions': [
         {'description': 'осмотреть стол', 'actions': [
@@ -31,83 +30,90 @@ cor = [
 class GameGUI:
     def __init__(self, root):
         self.root = root
-        self.root.title("Текстовая игра")
+        self.root.title("текстовая игра")
         self.root.geometry("600x400")
-        self.root.resizable(False, False)
         self.current_node = cor[0]
-        self.history = []  # для возврата к предыдущим состояниям
-
-        # доздание интерфейса
+        
+        # счетчики действий побед поражений
+        self.action_count = 0
+        self.win_count = 0
+        self.loss_count = 0
+        
+        # нач. лог
+        if not os.path.exists("logs"):
+            os.makedirs("logs")
+        self.log_file = open("logs/game_log.txt", "w", encoding="utf-8")
+        
         self.create_widgets()
-
-        # 0тображение начальной локации
         self.show_location()
 
+    def log(self, msg):
+        self.log_file.write(f"[{datetime.now().strftime('%H:%M:%S')}] {msg}\n")
+        self.log_file.flush()
+
+       #создание основных эл-ов интерфейса
     def create_widgets(self):
-        # текстовое поле для описания
-        self.description_text = tk.Text(self.root, height=8, width=70, wrap=tk.WORD, state=tk.DISABLED)
-        self.description_text.pack(pady=10)
+        self.text = tk.Text(self.root, height=8, width=70, wrap=tk.WORD, state=tk.DISABLED)
+        self.text.pack(pady=10)
 
-        # рамка для кнопок действий
-        self.actions_frame = tk.Frame(self.root)
-        self.actions_frame.pack(pady=10)
+        self.frame = tk.Frame(self.root)
+        self.frame.pack(pady=10)
 
-        # кнопка возврата 
-        self.back_button = tk.Button(self.root, text="начать заново", command=self.restart_game, state=tk.NORMAL)
-        self.back_button.pack(pady=5)
+        self.back_btn = tk.Button(self.root, text="начать заново", command=self.restart_game, state=tk.DISABLED)
+        self.back_btn.pack(pady=5) #кнопка лля перезапуска игры в начале отключена
 
-    def show_location(self):
-        # очистка текстового поля
-        self.description_text.config(state=tk.NORMAL)
-        self.description_text.delete(1.0, tk.END)
+    def show_location(self): #обнов текст поля
+        self.text.config(state=tk.NORMAL) #реж редакт
+        self.text.delete(1.0, tk.END) #очищение текст поля
 
-        if 'place' in self.current_node:
-            self.description_text.insert(tk.END, f"локация: {self.current_node['place']}\n\n")
-        self.description_text.insert(tk.END, self.current_node['description'])
+        if 'place' in self.current_node: 
+            self.text.insert(tk.END, f"локация: {self.current_node['place']}\n\n") 
+        self.text.insert(tk.END, self.current_node['description'])
 
-        # если есть описание проигрыша или победы
-        if 'description' in self.current_node and ('проиграл' in self.current_node['description'] or
-                                                   'ВЫЖИЛ' in self.current_node['description']):
-            self.description_text.insert(tk.END, f"\n\n{self.current_node['description']}")
+        self.text.config(state=tk.DISABLED)
 
-        self.description_text.config(state=tk.DISABLED)
+        for btn in self.frame.winfo_children(): #делет предыдущ кнопки перед созданием нью кнопок
+            btn.destroy()
 
-        # очистка старых кнопок 
-        for widget in self.actions_frame.winfo_children():
-            widget.destroy()
-
-        # создание новых кнопок действий
         if 'actions' in self.current_node:
             for action in self.current_node['actions']:
-                btn = tk.Button(self.actions_frame, text=action['description'],
-                                command=lambda a=action: self.perform_action(a))
-                btn.pack(pady=2, padx=10, fill=tk.X)
+                btn = tk.Button(self.frame, text=action['description'],
+                               command=lambda a=action: self.do_action(a)) #передача текущ значения переменной
+                btn.pack(pady=2, fill=tk.X)
 
-        # если это конец игры (проигрыш или победа)
-        if 'description' in self.current_node and ('проиграл' in self.current_node['description'] or
-                                                   'ВЫЖИЛ' in self.current_node['description']):
-            self.back_button.config(text="начать заново", state=tk.NORMAL)
-        else:
-            self.back_button.config(state=tk.DISABLED)
+        if 'description' in self.current_node:
+            if 'проиграл' in self.current_node['description']:
+                self.loss_count += 1 #увеличение  счетчика поражений
+                self.log(f"поражение ({self.loss_count})")
+                self.save_stats()
+                self.back_btn.config(state=tk.NORMAL)
+            elif 'ВЫЖИЛ' in self.current_node['description']:
+                self.win_count += 1
+                self.log(f"Победа ({self.win_count})")
+                self.save_stats()
+                self.back_btn.config(state=tk.NORMAL)
+            else:
+                self.back_btn.config(state=tk.DISABLED)
 
-    def perform_action(self, action):
-        self.history.append(self.current_node)
-        # переходим к следующему узлу
-        if 'actions' in action:
-            self.current_node = action
-            self.show_location()
-        elif 'description' in action:
-            self.current_node = action
-            self.show_location()
+    def do_action(self, action):
+        self.action_count += 1 # в моем коде это нужно чтобы отслеживать колво действий и описаний
+        self.log(f"{self.action_count}: {action['description']}")
+        self.current_node = action # обновление текущ состояния игры
+        self.show_location() #обновление интерфейса
+
+    def save_stats(self):
+        with open("stats.txt", "w") as f:
+            f.write(f"побед: {self.win_count}\n")
+            f.write(f"Поражений: {self.loss_count}\n")
+            f.write(f"действий: {self.action_count}\n")
 
     def restart_game(self):
-        """перезапуск игры с начала"""
+        self.log(f"перезапуск")
+        self.action_count = 0
         self.current_node = cor[0]
-        self.history = []
         self.show_location()
 
 
-def main():
-    root = tk.Tk()
-    game = GameGUI(root)
-    root.mainloop()
+root = tk.Tk()
+game = GameGUI(root)
+root.mainloop()
